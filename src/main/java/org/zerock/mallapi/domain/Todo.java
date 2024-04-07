@@ -2,7 +2,6 @@ package org.zerock.mallapi.domain;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,6 +34,10 @@ public class Todo {
 
     public void changeTitle(String title) {
         this.title = title;
+    }
+
+    public void changeContent(String content) {
+        this.content = content;
     }
 
     public void changeComplete(boolean complete) {
