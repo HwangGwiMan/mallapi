@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 public class PageResponseDTO<E> {
-    
+
     private List<E> dtoList;
 
     private List<Integer> pageNumList;
@@ -25,7 +25,7 @@ public class PageResponseDTO<E> {
         this.dtoList = dtoList;
         this.pageRequestDTO = pageRequestDTO;
 
-        this.totalCount = (int)total;
+        this.totalCount = (int) total;
 
         int end = (int) (Math.ceil(pageRequestDTO.getPage() / 10.0)) * 10;
         int start = end - 9;
@@ -35,13 +35,16 @@ public class PageResponseDTO<E> {
         end = end > last ? last : end;
 
         this.prev = start > 1;
-        
+
         this.next = totalCount > end * pageRequestDTO.getSize();
 
         this.pageNumList = IntStream.rangeClosed(start, end).boxed().collect(Collectors.toList());
-        
+
         this.prevPage = prev ? start - 1 : 0;
 
         this.nextPage = next ? end + 1 : 0;
+
+        this.totalPage = this.pageNumList.size();
+        this.current = pageRequestDTO.getPage();
     }
 }

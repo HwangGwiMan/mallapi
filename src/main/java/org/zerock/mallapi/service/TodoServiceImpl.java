@@ -27,7 +27,6 @@ public class TodoServiceImpl implements TodoService {
         Optional<Todo> result = todoRepository.findById(tno);
 
         Todo todo = result.orElseThrow();
-
         return entityToDTO(todo);
     }
 
