@@ -13,11 +13,13 @@ public class JWTUtil {
 
     public static String generateToken(Map<String, Object> valueMap, int min) {
         SecretKey key = null;
+
         try {
             key = Keys.hmacShaKeyFor(JWTUtil.key.getBytes("UTF-8"));
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
+
         String jwtStr = Jwts.builder()
                 .setHeader(Map.of("typ", "JWT"))
                 .setClaims(valueMap)
@@ -25,11 +27,13 @@ public class JWTUtil {
                 .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(min).toInstant()))
                 .signWith(key)
                 .compact();
+
         return jwtStr;
     }
 
     public static Map<String, Object> validateToken(String token) {
         Map<String, Object> claim = null;
+
         try {
             SecretKey key = Keys.hmacShaKeyFor(JWTUtil.key.getBytes("UTF-8"));
             claim = Jwts.parserBuilder()
@@ -48,6 +52,7 @@ public class JWTUtil {
         } catch (Exception e) {
             throw new CustomJWTException("Error");
         }
+        
         return claim;
     }
 }

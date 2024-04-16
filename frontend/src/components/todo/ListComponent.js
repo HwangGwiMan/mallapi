@@ -24,10 +24,11 @@ function ListComponent(props) {
 
     useEffect(() => {
         getList({ page, size }).then(data => {
-            console.log(data);
             setServerData(data);
         })
     }, [page, size, refresh]);
+
+    
 
     return (
         <div className="border-2 border-blue-100 mt-10 mr-2 ml-2">
