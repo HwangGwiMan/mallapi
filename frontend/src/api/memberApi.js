@@ -16,3 +16,9 @@ export const loginPost = async (loginParam) => {
     console.log(res);
     return res.data
 }
+
+export const modifyMember = async (member) => {
+    const res = await axios.put(`${host}/modify`, member)
+
+    return res.data;
+}
