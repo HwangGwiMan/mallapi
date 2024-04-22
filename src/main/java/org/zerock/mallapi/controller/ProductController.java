@@ -56,15 +56,22 @@ public class ProductController {
 
         return Map.of("RESULT", pno);
     }
-    
+
     @GetMapping("/view/{fileName}")
     public ResponseEntity<Resource> viewFileGET(@PathVariable("fileName") String fileName) {
         return fileUtil.getFile(fileName);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @GetMapping("/list")
     public PageResponseDTO<ProductDTO> list(PageRequestDTO pageRequestDTO) {
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         return productService.getList(pageRequestDTO);
     }
 
@@ -72,10 +79,10 @@ public class ProductController {
     public ProductDTO read(@PathVariable("pno") Long pno) {
         return productService.get(pno);
     }
-    
+
     @PutMapping("/{pno}")
     public Map<String, String> modify(@PathVariable("pno") Long pno, ProductDTO productDTO) {
-        
+
         productDTO.setPno(pno);
 
         ProductDTO oldProductDTO = productService.get(pno);
@@ -86,27 +93,24 @@ public class ProductController {
 
         List<String> uploadedFileNames = productDTO.getUploadFileNames();
 
-        if(currentUploadFileNames != null && !currentUploadFileNames.isEmpty()) {
+        if (currentUploadFileNames != null && !currentUploadFileNames.isEmpty()) {
             uploadedFileNames.addAll(currentUploadFileNames);
         }
 
         productService.modify(productDTO);
 
-
         List<String> oldFileNames = oldProductDTO.getUploadFileNames();
 
-        if(oldFileNames != null && oldFileNames.size() > 0) {
-            List<String> removeFiles =
-            oldFileNames.stream().filter(fileName -> 
-                uploadedFileNames.indexOf(fileName) == -1
-            ).collect(Collectors.toList());
+        if (oldFileNames != null && oldFileNames.size() > 0) {
+            List<String> removeFiles = oldFileNames.stream()
+                    .filter(fileName -> uploadedFileNames.indexOf(fileName) == -1).collect(Collectors.toList());
 
             fileUtil.deleteFiles(removeFiles);
         }
 
         return Map.of("RESULT", "SUCCESS");
     }
-    
+
     @DeleteMapping("/{pno}")
     public Map<String, String> remove(@PathVariable("pno") Long pno) {
         List<String> oldFileNames = productService.get(pno).getUploadFileNames();

@@ -3,6 +3,7 @@ import { postAdd } from "../../api/productsApi";
 import FetchModal from "../common/FetchModal";
 import ResultModal from "../common/ResultModal";
 import useCustomMove from "../../hooks/useCustomMove";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const initState = {
     pname: "",
@@ -17,9 +18,13 @@ const AddComponent = () => {
 
     const uploadRef = useRef();
 
-    const [fetching, setFetching] = useState(false);
-    const [result, setResult] = useState(null)
-    const {moveToList} = useCustomMove();
+    //const [fetching, setFetching] = useState(false);
+    //const [result, setResult] = useState(null)
+    const { moveToList } = useCustomMove();
+
+    const addMutation = useMutation({
+        mutationFn: (product) => postAdd(product)
+    })
 
     const handleChangeProduct = (e) => {
         product[e.target.name] = e.target.value
@@ -40,20 +45,27 @@ const AddComponent = () => {
         formData.append("pdesc", product.pdesc);
         formData.append("price", product.price);
 
-        setFetching(true);
+        //setFetching(true);
 
-        postAdd(formData).then(data => {
+        addMutation.mutate(formData)
 
-            setFetching(false)
-            setResult(data.RESULT)
-        });
+        // postAdd(formData).then(data => {
+
+        //     setFetching(false)
+        //     setResult(data.RESULT)
+        // });
     }
+
+    const queryClient = useQueryClient()
 
     const closeModal = () => {
-        setResult(null);
+        //setResult(null);
 
-        moveToList({page:1});
+        queryClient.invalidateQueries("products/list")
+        moveToList({ page: 1 });
     }
+
+    
 
     return (
         <div className="border-2 border-sky-200 mt-10 m-2 p-4">
@@ -104,13 +116,16 @@ const AddComponent = () => {
                 </div>
             </div>
 
-            {fetching ? <FetchModal /> : <></>}
+            {addMutation.isPending ? <FetchModal /> : <></>}
 
-            {result ? <ResultModal
-                callbackFn={closeModal}
-                title={"Product Add Result"}
-                content={`${result}번 상품 등록 완료`}
-                /> : <></>}
+            {addMutation.isSuccess ?
+                <ResultModal
+                    callbackFn={closeModal}
+                    title={"Product Add Result"}
+                    content={`${addMutation.data.RESULT}번 상품 등록 완료`}
+                />
+                :
+                <></>}
         </div>
     );
 }

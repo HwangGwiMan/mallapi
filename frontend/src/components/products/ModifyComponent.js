@@ -4,6 +4,7 @@ import FetchModal from "../common/FetchModal";
 import { API_SERVER_HOST } from "../../api/todoApi";
 import useCustomMove from "../../hooks/useCustomMove"
 import ResultModal from "../common/ResultModal";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const host = API_SERVER_HOST;
 
@@ -16,7 +17,6 @@ const initState = {
     uploadFileNames: []
 }
 
-
 const ModifyComponent = ({ pno }) => {
 
     const [product, setProduct] = useState(initState);
@@ -27,15 +27,35 @@ const ModifyComponent = ({ pno }) => {
 
     const { moveToList, moveToRead } = useCustomMove();
 
+    const delMutation = useMutation({
+        mutationFn: (pno) => deleteOne(pno)
+    })
+
+    const modMutation = useMutation({
+        mutationFn:(product) => putOne(pno, product)
+    })
+
+    const query = useQuery({
+        queryKey: ['products', pno],
+        queryFn: () => getOne(pno),
+        staleTime: Infinity
+    })
+
     const uploadRef = useRef();
 
     useEffect(() => {
-        setFetching(true);
-        getOne(pno).then(data => {
-            setProduct(data);
-            setFetching(false);
-        })
-    }, [pno])
+        if (query.isSuccess) {
+            setProduct(query.data)
+        }
+    }, [pno, query.data, query.isSuccess])
+
+    // useEffect(() => {
+    //     setFetching(true);
+    //     getOne(pno).then(data => {
+    //         setProduct(data);
+    //         setFetching(false);
+    //     })
+    // }, [pno])
 
     const handleChangeProduct = (e) => {
         product[e.target.name] = e.target.value
@@ -66,41 +86,59 @@ const ModifyComponent = ({ pno }) => {
             formData.append("uploadFileNames", product.uploadFileNames[i]);
         }
 
-        setFetching(true);
+        //setFetching(true);
 
-        putOne(pno, formData).then(data => {
-            setResult("Modified");
-            setFetching(false);
-        })
+        // putOne(pno, formData).then(data => {
+        //     setResult("Modified");
+        //     setFetching(false);
+        // })
+
+        modMutation.mutate(formData)
     }
 
     const handleClickDelete = () => {
-        setFetching(true);
+        //setFetching(true);
 
-        deleteOne(pno).then(data => {
-            setResult("Deleted");
-            setFetching(false);
-        })
+        // deleteOne(pno).then(data => {
+        //     setResult("Deleted");
+        //     setFetching(false);
+        // })
+
+        delMutation.mutate(pno)
     }
 
+    const queryClient = useQueryClient()
+
     const closeModal = () => {
-        if (result === "Modified") {
-            moveToRead(pno)
-        } else if(result === "Deleted") {
-            moveToList({page:1})
+        // if (result === "Modified") {
+        //     moveToRead(pno)
+        // } else if (result === "Deleted") {
+        //     moveToList({ page: 1 })
+        // }
+        // setResult(null);
+        queryClient.invalidateQueries(["products", pno])
+        queryClient.invalidateQueries("products/list")
+
+        if(delMutation.isSuccess) {
+            moveToList()
         }
-        setResult(null);
+
+        if(modMutation.isSuccess) {
+            moveToRead(pno)
+        }
     }
 
     return (
         <div className="border-2 border-sky-200 mt-10 m-2 p-4">
-            {fetching ? <FetchModal /> : <></>}
+            {query.isFetching || delMutation.isPending || modMutation.isSuccess ? <FetchModal /> : <></>}
 
-            {result ? <ResultModal
+            {delMutation.isSuccess || modMutation.isSuccess ? <ResultModal
                 title={`${result}`}
                 content={"처리되었습니다."}
                 callbackFn={closeModal}
-            /> : <></>}
+            /> 
+            :
+             <></>}
             <div className="flex justify-center">
                 <div className="relative mb-4 flex w-full flex-wrap items-stretch">
                     <div className="w-1/5 p-6 text-right font-bold">Product Name</div>

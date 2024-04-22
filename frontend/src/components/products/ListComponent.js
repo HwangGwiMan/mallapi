@@ -4,6 +4,7 @@ import FetchModal from "../common/FetchModal";
 import { getList } from "../../api/productsApi";
 import { API_SERVER_HOST } from "../../api/todoApi";
 import PageComponent from "../common/PageComponent";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const host = API_SERVER_HOST;
 
@@ -23,24 +24,41 @@ const initState = {
 const ListComponent = (props) => {
     const { moveToList, moveToRead, page, size, refresh } = useCustomMove();
 
-    const [serverData, setServerData] = useState(initState);
+    //const [serverData, setServerData] = useState(initState);
 
-    const [fetching, setFetching] = useState(false);
+    //const [fetching, setFetching] = useState(false);
 
-    useEffect(() => {
+    const {data, isFetching, error, isError} = useQuery({
+        queryKey:['products/list', {page, size, refresh}],
+        queryFn: () => getList({page, size}),
+        staleTime: 1000 * 5
+    })
 
-        setFetching(true);
+    //const queryClient = useQueryClient()
 
-        getList({ page, size }).then(data => {
-            setServerData(data);
-            setFetching(false)
+    const handleClickPage = (pageParam) => {
+        // if(pageParam.page === parseInt(page)) {
+        //     queryClient.invalidateQueries("products/list")
+        // }
 
-        })
-    }, [page, size, refresh])
+        moveToList(pageParam)
+    }
+
+    const serverData = data || initState
+    // useEffect(() => {
+
+    //     setFetching(true);
+
+    //     getList({ page, size }).then(data => {
+    //         setServerData(data);
+    //         setFetching(false)
+
+    //     })
+    // }, [page, size, refresh])
 
     return (
         <div className="border-2 border-blue-100 mt-10 mr-2 ml-2">
-            {fetching ? <FetchModal /> : <></>}
+            {isFetching ? <FetchModal /> : <></>}
             <div className="flex flex-wrap mx-auto p-6">
                 {serverData.dtoList.map(product =>
                     <div key={product.pno} className="w-1/2 p-1 rounded shadow-md border-2" onClick={() => moveToRead(product.pno)}>
@@ -64,7 +82,7 @@ const ListComponent = (props) => {
                     </div>
                 )}
             </div>
-            <PageComponent serverData={serverData} movePage={moveToList}/>
+            <PageComponent serverData={serverData} movePage={handleClickPage}/>
         </div>
     );
 }

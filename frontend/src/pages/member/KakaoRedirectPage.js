@@ -10,18 +10,21 @@ const KakaoRedirectPage = () => {
 
     const [searchParams] = useSearchParams()
 
-    const { moveToPath } = useCustomLogin()
-
+    const { moveToPath, saveAsCookie } = useCustomLogin()
 
     const authCode = searchParams.get("code")
 
-    const dispatch = useDispatch()
+    
+
+    //const dispatch = useDispatch()
 
     useEffect(() => {
         getAccessToken(authCode).then(accessToken => {
 
             getMemberWithAccessToken(accessToken).then(memberInfo => {
-                dispatch(login(memberInfo))
+                //dispatch(login(memberInfo))
+
+                saveAsCookie(memberInfo)
                 if (memberInfo && !memberInfo.social) {//소셜 회원이 아니라면
                     moveToPath("/")
                 } else {

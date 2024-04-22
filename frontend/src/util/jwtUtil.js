@@ -54,12 +54,13 @@ const beforeRes = async (res) => {
     console.log("before return response...........")
 
     const data = res.data
-
+    
     if (data && data.error === "ERROR_ACCESS_TOKEN") {
         const memberCookieValue = getCookie("member")
 
         const result = await refreshJWT(memberCookieValue.accessToken, memberCookieValue.refreshToken)
 
+        console.log(result)
         memberCookieValue.accessToken = result.accessToken
         memberCookieValue.refreshToken = result.refreshToken
 
@@ -70,7 +71,7 @@ const beforeRes = async (res) => {
         originalRequest.headers.Authorization = `Bearer ${result.accessToken}`
         return await axios(originalRequest)
     }
-
+    
     return res
 }
 

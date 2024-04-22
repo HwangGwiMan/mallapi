@@ -15,7 +15,7 @@ export const postAdd = async (product) => {
 export const getList = async (pageParam) => {
     const {page, size} = pageParam;
     const res = await jwtAxios.get(`${host}/list`, {params:{page, size}})
-
+    console.log(res);
     return res.data;
 }
 
